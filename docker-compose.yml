@@ -1,0 +1,45 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sprintforge
+      POSTGRES_PASSWORD: sprintforge
+      POSTGRES_DB: sprintforge
+    ports: ["127.0.0.1:5433:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sprintforge"]
+      interval: 5s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports: ["127.0.0.1:6380:6379"]
+    volumes: [redisdata:/data]
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://sprintforge:sprintforge@postgres:5432/sprintforge?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-local-development-secret-change-before-deploying-123456}
+      PORT: 4000
+      WEB_ORIGIN: http://localhost:3000
+    ports: ["4000:4000"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_started}
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:4000
+        NEXT_PUBLIC_SOCKET_URL: http://localhost:4000
+    ports: ["3000:3000"]
+    depends_on: [api]
+volumes:
+  pgdata:
+  redisdata:

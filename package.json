@@ -1,0 +1,26 @@
+{
+  "name": "sprintforge",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n API,WEB -c cyan,magenta \"npm run dev -w @sprintforge/api\" \"npm run dev -w @sprintforge/web\"",
+    "build": "npm run build -w @sprintforge/api && npm run build -w @sprintforge/web",
+    "test": "npm run test -w @sprintforge/api",
+    "db:push": "npm run db:push -w @sprintforge/api",
+    "db:seed": "npm run db:seed -w @sprintforge/api",
+    "db:generate": "npm run db:generate -w @sprintforge/api",
+    "check": "npm run db:generate && npm run test && npm run build",
+    "typecheck": "npm run build",
+    "security:audit": "npm audit --audit-level=high",
+    "db:migrate": "npm run db:migrate -w @sprintforge/api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
